@@ -1,12 +1,12 @@
 {
   "name": "download-jenkins-logs",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A CLI to download all logs from a Jenkins server for offline analysis",
   "bin": {
     "download-jenkins-logs": "bin/download-jenkins-logs"
   },
-  "engines" : {
-    "node" : ">=7.6.0"
+  "engines": {
+    "node": ">=7.6.0"
   },
   "scripts": {
     "lint": "eslint bin/* ."
