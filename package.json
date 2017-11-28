@@ -5,6 +5,9 @@
   "bin": {
     "download-jenkins-logs": "bin/download-jenkins-logs"
   },
+  "engines" : {
+    "node" : ">=7.6.0"
+  },
   "scripts": {
     "lint": "eslint bin/* ."
   },
