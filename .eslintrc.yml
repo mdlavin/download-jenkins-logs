@@ -1,0 +1,7 @@
+extends:
+  - semistandard
+  - plugin:security/recommended
+parserOptions:
+  ecmaVersion: 8
+plugins:
+  - security

@@ -1,0 +1,37 @@
+{
+  "name": "download-jenkins-logs",
+  "version": "1.0.0",
+  "description": "A CLI to download all logs from a Jenkins server for offline analysis",
+  "bin": {
+    "download-jenkins-logs": "bin/download-jenkins-logs"
+  },
+  "scripts": {
+    "lint": "eslint bin/* ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mdlavin/download-jenkins-logs.git"
+  },
+  "author": "Matt Lavin <matt.lavin@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mdlavin/download-jenkins-logs/issues"
+  },
+  "homepage": "https://github.com/mdlavin/download-jenkins-logs#readme",
+  "devDependencies": {
+    "eslint": "^4.12.0",
+    "eslint-config-semistandard": "^11.0.0",
+    "eslint-config-standard": "^10.2.1",
+    "eslint-plugin-import": "^2.8.0",
+    "eslint-plugin-node": "^5.2.1",
+    "eslint-plugin-promise": "^3.6.0",
+    "eslint-plugin-security": "^1.4.0",
+    "eslint-plugin-standard": "^3.0.1"
+  },
+  "dependencies": {
+    "fs-extra": "^4.0.2",
+    "jenkins": "^0.20.0",
+    "sanitize-filename": "^1.6.1",
+    "yargs": "^10.0.3"
+  }
+}

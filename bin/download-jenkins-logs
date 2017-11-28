@@ -1,0 +1,98 @@
+#!/usr/bin/env node
+
+const fs = require('fs-extra');
+const sanitize = require('sanitize-filename');
+const Jenkins = require('jenkins');
+const {defaults, pick} = require('lodash');
+const url = require('url');
+const yargs = require('yargs');
+
+function createJenkinsClient (options) {
+  options = defaults({}, options, {
+    url: process.env.JENKINS_URL,
+    username: process.env.JENKINS_USERNAME,
+    password: process.env.JENKINS_PASSWORD
+  });
+
+  if (!options.username) {
+    throw new Error('The Jenkins username must be provided either in the options.username argument or the JENKINS_USERNAME environment variable');
+  }
+
+  if (!options.password) {
+    throw new Error('The Jenkins password must be provided either in the options.password argument or the JENKINS_PASSWORD environment variable');
+  }
+
+  if (!options.url) {
+    throw new Error('The Jenkins url must be provided either in the options.host argument or the JENKINS_URL environment variable');
+  }
+
+  const jenkinsBaseUrl = url.parse(options.url);
+  jenkinsBaseUrl.auth = `${options.username}:${options.password}`;
+
+  return Jenkins({
+    baseUrl: url.format(jenkinsBaseUrl),
+    promisify: true
+  });
+}
+
+async function forEachBuildInJob (jenkinsClient, jobName, buildHandler) {
+  const jobInfo = await jenkinsClient.job.get(jobName);
+  if (jobInfo.jobs) {
+    for (const {name} of jobInfo.jobs) {
+      await forEachBuildInJob(jenkinsClient, `${jobName}/${name}`, buildHandler);
+    }
+  }
+
+  if (jobInfo.builds) {
+    for (const {number} of jobInfo.builds) {
+      await buildHandler(jobName, number);
+    }
+  }
+}
+
+async function downloadLogs (jenkinsClient, targetDirectory, jobName, buildNumber) {
+  console.log(`Downloading ${jobName} ${buildNumber}`);
+  const buildLog = await jenkinsClient.build.log(jobName, buildNumber);
+
+  const safeJobName = sanitize(jobName, {replacement: '_'});
+  const directory = `${targetDirectory}/${safeJobName}`;
+  await fs.mkdirp(directory);
+  const safeBuildNumber = sanitize(String(buildNumber), {replacement: '_'});
+  // eslint-disable-next-line security/detect-non-literal-fs-filename
+  await fs.writeFile(`${directory}/${safeBuildNumber}.txt`, buildLog);
+}
+
+async function run () {
+  const args = yargs
+    .option('username', {
+      alias: 'u',
+    })
+    .option('password', {
+      alias: 'p',
+    })
+    .option('url', {
+      alias: 'U',
+    })
+    .option('target', {
+      alias: 't',
+      default: 'jenkins-logs'
+    })
+    .argv;
+
+  const jenkinsOptions = pick(args, 'username', 'password', 'url');
+  const jenkinsClient = createJenkinsClient(jenkinsOptions);
+
+  const downloadHandler = downloadLogs.bind(undefined, jenkinsClient, args.target);
+
+  const jobs = await jenkinsClient.job.list();
+  for (const {name} of jobs) {
+    await forEachBuildInJob(jenkinsClient, name, downloadHandler);
+  }
+  console.log(jobs);
+}
+
+run()
+  .catch(function (e) {
+    console.error(e);
+    process.exitCode = -1;
+  });
